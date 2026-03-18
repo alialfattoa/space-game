@@ -70,8 +70,16 @@ function initGame() {
     hero.x -= 5;
   });
 
-   eventEmitter.on(Messages.KEY_EVENT_RIGHT, () => {
+  eventEmitter.on(Messages.KEY_EVENT_RIGHT, () => {
     hero.x += 5;
+  });
+
+  eventEmitter.on(Messages.GAME_END_WIN, () => {
+    endGame(true);
+  });
+
+  eventEmitter.on(Messages.GAME_END_LOSS, () => {
+    endGame(false);
   });
 
 }
@@ -247,6 +255,17 @@ function updateGameObjects() {
 
   // Remove destroyed objects
   gameObjects = gameObjects.filter(go => !go.dead);
+
+  // All enemies dead = win
+  enemies = gameObjects.filter(go => go.type === "Enemy");
+  if (enemies.length === 0) {
+    eventEmitter.emit(Messages.GAME_END_WIN);
+  }
+
+  // Hero dead = loss
+  if (hero.dead) {
+    eventEmitter.emit(Messages.GAME_END_LOSS);
+  }
 }
 
 function displayHeroStats(ctx) {
@@ -262,6 +281,27 @@ function displayLives(ctx) {
   }
 }
 
+
+function displayMessage(message, color = "red") {
+  ctx.font = "30px Arial";
+  ctx.fillStyle = color;
+  ctx.textAlign = "center";
+  ctx.fillText(message, canvas.width / 2, canvas.height / 2);
+}
+
+function endGame(win) {
+  clearInterval(gameLoopId);  // stop the game loop
+  setTimeout(() => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (win) {
+      displayMessage("Victory! Press [Enter] to start a new game", "green");
+    } else {
+      displayMessage("You died! Press [Enter] to start a new game");
+    }
+  }, 200);
+}
 const Messages = {
   KEY_EVENT_UP: "KEY_EVENT_UP",
   KEY_EVENT_DOWN: "KEY_EVENT_DOWN",
@@ -270,6 +310,8 @@ const Messages = {
   KEY_EVENT_SPACE: "KEY_EVENT_SPACE",
   COLLISION_ENEMY_LASER: "COLLISION_ENEMY_LASER",
   COLLISION_ENEMY_HERO: "COLLISION_ENEMY_HERO",
+  GAME_END_LOSS: "GAME_END_LOSS",
+  GAME_END_WIN:  "GAME_END_WIN",
 };
 
 let heroImg, 
