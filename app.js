@@ -1,7 +1,3 @@
-const KEY_EVENT_SPACE = "KEY_EVENT_SPACE";
-const COLLISION_ENEMY_LASER = "COLLISION_ENEMY_LASER";
-const COLLISION_ENEMY_HERO = "COLLISION_ENEMY_HERO";
-
 async function loadTexture(path) {
   return new Promise((resolve) => {
     const img = new Image()
@@ -67,6 +63,8 @@ function initGame() {
   eventEmitter.on(Messages.KEY_EVENT_LEFT, () => {
     hero.x -= 5;
   });
+
+
 }
 
 class GameObject {
@@ -169,6 +167,12 @@ class EventEmitter {
     }
     this.listeners[message].push(listener);
   }
+
+  emit(message, payload = null) {
+		if (this.listeners[message]) {
+			this.listeners[message].forEach((l) => l(message, payload));
+		}
+	}
 }
 
 const onKeyDown = function (e) {
@@ -220,12 +224,15 @@ const Messages = {
   KEY_EVENT_UP: "KEY_EVENT_UP",
   KEY_EVENT_DOWN: "KEY_EVENT_DOWN",
   KEY_EVENT_LEFT: "KEY_EVENT_LEFT",
-  KEY_EVENT_RIGHT: "KEY_EVENT_RIGHT",
+  KEY_EVENT_RIGHT: "KEY_EVENT_RIGHT", 
+  KEY_EVENT_SPACE: "KEY_EVENT_SPACE",
+  COLLISION_ENEMY_LASER: "COLLISION_ENEMY_LASER",
+  COLLISION_ENEMY_HERO: "COLLISION_ENEMY_HERO",
 };
 
 let heroImg, 
     enemyImg, 
-    laserImg, ctx, canvas=document.getElementById('myCanvas'),
+    laserImg, lifeImg, ctx, canvas=document.getElementById('myCanvas'),
     gameObjects = [], 
     hero, 
     eventEmitter = new EventEmitter();
@@ -240,9 +247,9 @@ window.addEventListener("keyup", (evt) => {
     eventEmitter.emit(Messages.KEY_EVENT_LEFT);
   } else if (evt.key === "ArrowRight") {
     eventEmitter.emit(Messages.KEY_EVENT_RIGHT);
-  } else if(evt.key === 32) {
+  } else if(evt.key === " ") {
   eventEmitter.emit(Messages.KEY_EVENT_SPACE);
-  }
+  } 
 });
 
 window.onload = async () => {
@@ -251,12 +258,14 @@ window.onload = async () => {
   heroImg = await loadTexture('assets/player.png');
   enemyImg = await loadTexture('assets/enemyShip.png');
   laserImg = await loadTexture('assets/laserRed.png');
+  lifeImg = await loadTexture('assets/life.png');
 
   initGame();
   const gameLoopId = setInterval(() => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    updateGameObjects();
     drawGameObjects(ctx);
   }, 100);
 };
