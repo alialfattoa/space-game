@@ -25,13 +25,14 @@ function createEnemies(ctx, canvas, enemyImg) {
 window.onload = async () => {
   canvas = document.getElementById('myCanvas')
   ctx = canvas.getContext('2d')
-  // TODO load textures 
-  const heroImg = await loadTexture("../assets/player.png")
-  const enemyImg = await loadTexture("../assets/enemyShip.png")
-  // TODO draw black background
+  // Load images using loadTexture()
+  const heroImg = await loadTexture('assets/player.png')
+  const enemyImg = await loadTexture('assets/enemyShip.png')
+  // Draw black background
   ctx.fillStyle="black";
-  ctx.fillRect(0,0);
-  // TODO draw hero
+  ctx.fillRect(0,0,canvas.width, canvas.height);
+  // Draw hero
   ctx.drawImage(heroImg, canvas.width/2 - 45, canvas.height - (canvas.height / 4), 90, 90);
+  // Create Enemies
   createEnemies(ctx, canvas, enemyImg);
 }
