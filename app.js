@@ -64,6 +64,9 @@ function initGame() {
     hero.x -= 5;
   });
 
+   eventEmitter.on(Messages.KEY_EVENT_RIGHT, () => {
+    hero.x += 5;
+  });
 
 }
 
@@ -100,8 +103,21 @@ class Hero extends GameObject {
     this.type = "Hero";
     this.speed = { x: 0, y: 0 };
     this.cooldown = 0;
+    this.life=3;
+    this.points=0;
   }
   
+  incrementPoints() {
+  this.points += 100;
+}
+
+decrementLife() {
+  this.life -= 1;
+  if (this.life === 0) {
+    this.dead = true;
+  }
+}
+
   fire() {
     gameObjects.push(new Laser(this.x + 45, this.y - 10));
     this.cooldown = 500;
@@ -218,6 +234,13 @@ function updateGameObjects() {
 
   // Remove destroyed objects
   gameObjects = gameObjects.filter(go => !go.dead);
+}
+
+function displayHeroStats(ctx) {
+  ctx.font = "30px Arial";
+  ctx.fillStyle = "red";
+  ctx.textAlign = "left";
+  ctx.fillText("Score: " + hero.points, 10, canvas.height - 20);
 }
 
 const Messages = {
