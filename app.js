@@ -1,3 +1,6 @@
+const KEY_EVENT_SPACE = "KEY_EVENT_SPACE";
+const COLLISION_ENEMY_LASER = "COLLISION_ENEMY_LASER";
+const COLLISION_ENEMY_HERO = "COLLISION_ENEMY_HERO";
 
 async function loadTexture(path) {
   return new Promise((resolve) => {
@@ -42,6 +45,17 @@ function initGame() {
   createEnemies();
   createHero();
 
+  eventEmitter.on(Messages.KEY_EVENT_SPACE, () => {
+    if (hero.canFire()) {
+      hero.fire();
+    }
+  });
+
+  eventEmitter.on(Messages.COLLISION_ENEMY_LASER, (_, { first, second }) => {
+    first.dead = true;
+    second.dead = true;
+  });
+
   eventEmitter.on(Messages.KEY_EVENT_UP, () => {
     hero.y -= 5;
   });
@@ -64,6 +78,15 @@ class GameObject {
     this.width = 0;
     this.height = 0;
     this.img = undefined;
+  }
+
+  rectFromGameObject() {
+    return {
+      top: this.y,
+      left: this.x,
+      bottom: this.y + this.height,
+      right: this.x + this.width,
+    };
   }
 
   draw(ctx) {
@@ -114,18 +137,14 @@ const onKeyDown = function (e) {
   }
 };
 
-window.addEventListener("keydown", onKeyDown);
-window.addEventListener("keyup", (evt) => {
-  if (evt.key === "ArrowUp") {
-    eventEmitter.emit(Messages.KEY_EVENT_UP);
-  } else if (evt.key === "ArrowDown") {
-    eventEmitter.emit(Messages.KEY_EVENT_DOWN);
-  } else if (evt.key === "ArrowLeft") {
-    eventEmitter.emit(Messages.KEY_EVENT_LEFT);
-  } else if (evt.key === "ArrowRight") {
-    eventEmitter.emit(Messages.KEY_EVENT_RIGHT);
-  }
-});
+function intersectRect(r1, r2) {
+  return !(
+    r2.left > r1.right ||
+    r2.right < r1.left ||
+    r2.top > r1.bottom ||
+    r2.bottom < r1.top
+  );
+}
 
 class EventEmitter {
   constructor() {
@@ -153,6 +172,21 @@ let heroImg,
     gameObjects = [], 
     hero, 
     eventEmitter = new EventEmitter();
+
+window.addEventListener("keydown", onKeyDown);
+window.addEventListener("keyup", (evt) => {
+  if (evt.key === "ArrowUp") {
+    eventEmitter.emit(Messages.KEY_EVENT_UP);
+  } else if (evt.key === "ArrowDown") {
+    eventEmitter.emit(Messages.KEY_EVENT_DOWN);
+  } else if (evt.key === "ArrowLeft") {
+    eventEmitter.emit(Messages.KEY_EVENT_LEFT);
+  } else if (evt.key === "ArrowRight") {
+    eventEmitter.emit(Messages.KEY_EVENT_RIGHT);
+  } else if(evt.key === 32) {
+  eventEmitter.emit(Messages.KEY_EVENT_SPACE);
+  }
+});
 
 window.onload = async () => {
   canvas = document.getElementById('myCanvas');
