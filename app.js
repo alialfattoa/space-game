@@ -1,3 +1,10 @@
+const canvas = document.getElementById('myCanvas')
+const ENEMY_TOTAL = 5;
+const ENEMY_SPACING = 98;
+const FORMATION_WIDTH = ENEMY_TOTAL * ENEMY_SPACING;
+const START_X = (canvas.width - FORMATION_WIDTH) / 2;
+const STOP_X = START_X + FORMATION_WIDTH;
+
 async function loadTexture(path) {
   return new Promise((resolve) => {
     const img = new Image()
@@ -9,21 +16,14 @@ async function loadTexture(path) {
 }
 
 function createEnemies(ctx, canvas, enemyImg) {
-      const MONSTER_TOTAL = 7;
-      const MONSTER_ROWS = 5;
-      const ENEMY_SIZE = 65;
-      const START_X = (canvas.width - (MONSTER_TOTAL * ENEMY_SIZE)) / 2;
-      for (let row = 0; row < MONSTER_ROWS; row++) {
-        for (let col = 0; col < MONSTER_TOTAL; col++) {
-          const x = START_X + col * ENEMY_SIZE;
-          const y = 60 + row * ENEMY_SIZE;
-          ctx.drawImage(enemyImg, x, y, ENEMY_SIZE, ENEMY_SIZE);
-        }
-      }
+  for (let x = START_X; x < STOP_X; x += ENEMY_SPACING) {
+    for (let y = 0; y < 50 * 5; y += 50) {
+      ctx.drawImage(enemyImg, x, y);
     }
+  }
+}
 
 window.onload = async () => {
-  canvas = document.getElementById('myCanvas')
   ctx = canvas.getContext('2d')
   // Load images using loadTexture()
   const heroImg = await loadTexture('assets/player.png')
