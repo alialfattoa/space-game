@@ -97,10 +97,28 @@ class GameObject {
 class Hero extends GameObject {
   constructor(x, y) {
     super(x, y);
-    this.width = 98;
+    this.width = 99;
     this.height = 75;
     this.type = "Hero";
-    this.speed = 5;
+    this.speed = { x: 0, y: 0 };
+    this.cooldown = 0;
+  }
+  
+  fire() {
+    gameObjects.push(new Laser(this.x + 45, this.y - 10));
+    this.cooldown = 500;
+
+    let id = setInterval(() => {
+      if (this.cooldown > 0) {
+        this.cooldown -= 100;
+      } else {
+        clearInterval(id);
+      }
+    }, 200);
+  }
+  
+  canFire() {
+    return this.cooldown === 0;
   }
 }
 
@@ -140,6 +158,19 @@ class Laser extends GameObject {
   }
 }
 
+class EventEmitter {
+  constructor() {
+    this.listeners = {};
+  }
+
+  on(message, listener) {
+    if (!this.listeners[message]) {
+      this.listeners[message] = [];
+    }
+    this.listeners[message].push(listener);
+  }
+}
+
 const onKeyDown = function (e) {
   console.log(e.keyCode);
   // Add the code from the lesson above to stop default behavior
@@ -165,17 +196,24 @@ function intersectRect(r1, r2) {
   );
 }
 
-class EventEmitter {
-  constructor() {
-    this.listeners = {};
-  }
+function updateGameObjects() {
+  const enemies = gameObjects.filter(go => go.type === 'Enemy');
+  const lasers = gameObjects.filter(go => go.type === "Laser");
+  
+  // Test laser-enemy collisions
+  lasers.forEach((laser) => {
+    enemies.forEach((enemy) => {
+      if (intersectRect(laser.rectFromGameObject(), enemy.rectFromGameObject())) {
+        eventEmitter.emit(Messages.COLLISION_ENEMY_LASER, {
+          first: laser,
+          second: enemy,
+        });
+      }
+    });
+  });
 
-  on(message, listener) {
-    if (!this.listeners[message]) {
-      this.listeners[message] = [];
-    }
-    this.listeners[message].push(listener);
-  }
+  // Remove destroyed objects
+  gameObjects = gameObjects.filter(go => !go.dead);
 }
 
 const Messages = {
