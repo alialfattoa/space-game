@@ -82,6 +82,9 @@ function initGame() {
     endGame(false);
   });
 
+  eventEmitter.on(Messages.KEY_EVENT_ENTER, () => {
+    resetGame();
+  });
 }
 
 class GameObject {
@@ -231,7 +234,7 @@ function intersectRect(r1, r2) {
 }
 
 function updateGameObjects() {
-  const enemies = gameObjects.filter(go => go.type === 'Enemy');
+  let enemies = gameObjects.filter(go => go.type === 'Enemy');
   const lasers = gameObjects.filter(go => go.type === "Laser");
   
   // Test laser-enemy collisions
@@ -302,6 +305,12 @@ function endGame(win) {
     }
   }, 200);
 }
+
+function resetGame() {
+  eventEmitter.listeners = {};
+  initGame();
+}
+
 const Messages = {
   KEY_EVENT_UP: "KEY_EVENT_UP",
   KEY_EVENT_DOWN: "KEY_EVENT_DOWN",
@@ -312,6 +321,7 @@ const Messages = {
   COLLISION_ENEMY_HERO: "COLLISION_ENEMY_HERO",
   GAME_END_LOSS: "GAME_END_LOSS",
   GAME_END_WIN:  "GAME_END_WIN",
+  KEY_EVENT_ENTER: "KEY_EVENT_ENTER",
 };
 
 let heroImg, 
@@ -333,7 +343,9 @@ window.addEventListener("keyup", (evt) => {
     eventEmitter.emit(Messages.KEY_EVENT_RIGHT);
   } else if(evt.key === " ") {
   eventEmitter.emit(Messages.KEY_EVENT_SPACE);
-  } 
+  } else if (evt.key === "Enter") {
+  eventEmitter.emit(Messages.KEY_EVENT_ENTER);
+  }
 });
 
 window.onload = async () => {
