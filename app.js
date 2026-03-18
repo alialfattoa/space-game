@@ -50,6 +50,12 @@ function initGame() {
   eventEmitter.on(Messages.COLLISION_ENEMY_LASER, (_, { first, second }) => {
     first.dead = true;
     second.dead = true;
+    hero.incrementPoints();
+  });
+
+  eventEmitter.on(Messages.COLLISION_ENEMY_HERO, (_, { enemy }) => {
+    enemy.dead = true;
+    hero.decrementLife();   
   });
 
   eventEmitter.on(Messages.KEY_EVENT_UP, () => {
@@ -232,6 +238,13 @@ function updateGameObjects() {
     });
   });
 
+  enemies.forEach(enemy => {
+    const heroRect = hero.rectFromGameObject();
+    if (intersectRect(heroRect, enemy.rectFromGameObject())) {
+      eventEmitter.emit(Messages.COLLISION_ENEMY_HERO, { enemy });
+    }
+  });
+
   // Remove destroyed objects
   gameObjects = gameObjects.filter(go => !go.dead);
 }
@@ -241,6 +254,12 @@ function displayHeroStats(ctx) {
   ctx.fillStyle = "red";
   ctx.textAlign = "left";
   ctx.fillText("Score: " + hero.points, 10, canvas.height - 20);
+}
+
+function displayLives(ctx) {
+  for (let i = 0; i < hero.life; i++) {
+    ctx.drawImage(lifeImg, canvas.width - 35 * (i + 1), canvas.height - 35, 25, 25);
+  }
 }
 
 const Messages = {
@@ -288,6 +307,8 @@ window.onload = async () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    displayHeroStats(ctx);
+    displayLives(ctx);
     updateGameObjects();
     drawGameObjects(ctx);
   }, 100);
